@@ -1,4 +1,5 @@
 const searchForm = $("#searchForm");
+const locationDropdown = $("#locationDropdown");
 const locationBtnContainer = $("#locationBtnContainer");
 const cityDetailsContainer = $("#cityDetailsContainer");
 const forecastContainer = $("#forecastContainer");
@@ -17,13 +18,17 @@ searchForm.on("submit", async e => {
   input.val("");
 });
 
-locationBtnContainer.on("click", "button", e => {
-  const btn = $(e.target);
-  currentLocation = btn.data("location");
+function onLocationClick(e) {
+  const el = $(e.target);
+  currentLocation = el.data("location");
   saveCurrentLocation(currentLocation);
   updateWeather();
   window.scrollTo(0, 0);
-});
+}
+
+locationDropdown.on("click", "a", onLocationClick);
+
+locationBtnContainer.on("click", "button", onLocationClick);
 
 function loadLocations() {
   const data = JSON.parse(localStorage.getItem("locations"));
@@ -135,18 +140,13 @@ function getIcon(icon) {
 }
 
 function renderLocations() {
-  const currentLocation = loadCurrentLocation();
-  locationBtnContainer.html("");
+  locationDropdown.html("");
   locations.forEach(location => {
-    const btn = $(
-      `<button class="btn btn-outline-primary  p-3 my-2  fs-4">${location.name}</button>`
-    );
-    btn.data("location", location);
-    if (currentLocation && currentLocation.name === location.name) {
-      btn.addClass("btn-primary");
-      btn.removeClass("btn-outline-primary");
-    }
-    locationBtnContainer.append(btn);
+    const item = $("<li>");
+    const anchor = $(`<a class="dropdown-item" href="#">${location.name}</a>`);
+    anchor.data("location", location);
+    item.append(anchor);
+    locationDropdown.append(item);
   });
 }
 
