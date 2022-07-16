@@ -17,7 +17,7 @@
   <body>
     <nav class="navbar navbar-expand-lg bg-light">
       <div class="container-fluid">
-        <a class="navbar-brand fs-1" href="#">Weather App</a>
+        <a class="navbar-brand fs-1 text-primary" href="#">Weather App</a>
         <button
           class="navbar-toggler"
           type="button"
@@ -31,12 +31,12 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item">
-              <a class="nav-link disabled">Set Home Town</a>
+            <li id="homeTown" class="nav-item">
+              <a class="nav-link disabled text-secondary" href="#">(Set Home Town)</a>
             </li>
             <li class="nav-item dropdown">
               <a
-                class="nav-link dropdown-toggle"
+                class="nav-link dropdown-toggle text-dark"
                 href="#"
                 id="navbarDropdown"
                 role="button"
@@ -46,7 +46,7 @@
                 Locations
               </a>
               <ul id="locationDropdown" class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <li><a class="dropdown-item" href="#">Adelaide</a></li>
+                <!-- <li><a class="dropdown-item" href="#">Adelaide</a></li> -->
               </ul>
             </li>
           </ul>
@@ -57,34 +57,62 @@
               placeholder="Search a city..."
               aria-label="Search"
             />
-            <button class="btn btn-outline-success" type="submit">Search</button>
+            <button class="btn btn-outline-success text-nowrap" type="submit">
+              Get Weather
+            </button>
           </form>
         </div>
       </div>
     </nav>
     <div class="container w-auto p-4">
       <div class="row">
-        <div class="container card shadow my-3 border-primary" id="cityDetailsContainer">
-          <div class="card-body fw-light">
-            <div class="row">
-              <div class="col-12 col-md-6">
-                <div class="card-title">
-                  <h1></h1>
-                  <h2 class="text-primary date"></h2>
+        <div class="col-12">
+          <div class="container card shadow my-3 border-primary" id="cityDetailsContainer">
+            <button
+              id="setHome"
+              class="btn btn-warning rounded-pill position-absolute top-0 end-0"
+            >
+              Set Home Town
+            </button>
+            <div class="card-body fw-light main">
+              <div class="row">
+                <div class="col-12 col-md-6">
+                  <div class="card-title">
+                    <h1></h1>
+                    <h2 class="text-primary date"></h2>
+                  </div>
+                  <p class="card-text">Temp: <span class="fw-bold temp"></span></p>
+                  <p class="card-text">Wind: <span class="fw-bold wind"></span></p>
+                  <p class="card-text">Humidity: <span class="fw-bold humidity"></span></p>
+                  <p class="card-text">
+                    UV Index: <span class="badge fs-6 fw-bold uvi"></span>
+                  </p>
                 </div>
-                <p class="card-text">Temp: <span class="fw-bold temp"></span></p>
-                <p class="card-text">Wind: <span class="fw-bold wind"></span></p>
-                <p class="card-text">Humidity: <span class="fw-bold humidity"></span></p>
-                <p class="card-text">UV Index: <span class="badge fs-6 fw-bold uvi"></span></p>
+                <div class="col-12 col-md-6 d-flex justify-content-center">
+                  <img src="" alt="" />
+                </div>
               </div>
-              <div class="col-12 col-md-6 d-flex justify-content-center">
-                <img src="" alt="" />
-              </div>
+            </div>
+            <div class="card-body sub">
+              <h2 class="card-title">Get the weather for any city</h2>
+              <p class="card-text">
+                Use the search bar to get the weather forecast for any city - give it a try!
+              </p>
+              <p class="card-text">
+                Once you've searched a city, it will be available in the 'Locations' link in
+                the navigation bar.
+              </p>
+              <p>
+                If you find yourself searching the weather of a place often you can set it as
+                your home town. It will be immediately available on the navigation bar.
+              </p>
             </div>
           </div>
         </div>
-        <div class="container p-0 my-4">
-          <div class="row" id="forecastContainer"></div>
+        <div class="col-12">
+          <div class="container p-0 my-4">
+            <div class="row" id="forecastContainer"></div>
+          </div>
         </div>
       </div>
     </div>

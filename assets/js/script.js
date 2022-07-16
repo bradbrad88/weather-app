@@ -2,13 +2,20 @@ const searchForm = $("#searchForm");
 const locationDropdown = $("#locationDropdown");
 const locationBtnContainer = $("#locationBtnContainer");
 const cityDetailsContainer = $("#cityDetailsContainer");
+const cityDetailsCard = cityDetailsContainer.find(".card-body.main");
+cityDetailsCard.detach();
 const forecastContainer = $("#forecastContainer");
+const setHomeBtn = $("#setHome");
+const homeTownNav = $("#homeTown");
 
 const APP_ID = "a85920815477cd95ada1b55d26549d09";
 const OPENWEATHER_URL = "https://api.openweathermap.org";
 const ICON_URL = "http://openweathermap.org/img/wn/";
 
 const locations = loadLocations();
+
+setHomeBtn.hide();
+setHomeBtn.on("click", saveHomeLocation);
 
 searchForm.on("submit", async e => {
   e.preventDefault();
@@ -17,6 +24,22 @@ searchForm.on("submit", async e => {
   if (!success) return;
   input.val("");
 });
+
+homeTownNav.on("click", onHome);
+
+function onHome() {
+  const location = loadHomeLocation();
+  onSearch(location.name);
+}
+
+function renderHomeNav() {
+  const home = JSON.parse(localStorage.getItem("home"));
+  if (!home) return;
+  const anchor = homeTownNav.find("a");
+  anchor.text("Home - " + home.name);
+  anchor.removeClass(["disabled", "text-secondary"]);
+  anchor.addClass("text-dark");
+}
 
 function onLocationClick(e) {
   const el = $(e.target);
@@ -40,6 +63,11 @@ function loadCurrentLocation() {
   return data;
 }
 
+function loadHomeLocation() {
+  const data = JSON.parse(localStorage.getItem("home"));
+  return data;
+}
+
 function saveLocation(location) {
   locations.push(location);
   localStorage.setItem("locations", JSON.stringify(locations));
@@ -47,6 +75,13 @@ function saveLocation(location) {
 
 function saveCurrentLocation(location) {
   localStorage.setItem("currentLocation", JSON.stringify(location));
+}
+
+function saveHomeLocation() {
+  const location = loadCurrentLocation();
+  localStorage.setItem("home", JSON.stringify(location));
+  setHomeBtn.hide();
+  renderHomeNav();
 }
 
 function normaliseLocation(location) {
@@ -57,15 +92,6 @@ function normaliseLocation(location) {
     lon: location.lon,
     country: location.country,
   };
-}
-
-async function updateWeather() {
-  renderLocations();
-  const weather = await fetchWeather();
-  if (!weather) return;
-  renderCityCard(weather.current);
-  renderForecast(weather.daily);
-  console.log(weather);
 }
 
 async function onSearch(locationName) {
@@ -108,11 +134,11 @@ async function fetchLocation(location) {
 
 async function fetchWeather() {
   const currentLocation = loadCurrentLocation();
+  if (!currentLocation) return null;
   const query = new URLSearchParams(currentLocation);
   query.append("appid", APP_ID);
   query.append("units", "metric");
   query.append("exclude", "minutely,hourly,alerts");
-
   const url = new URL("data/2.5/onecall", OPENWEATHER_URL);
   url.search = query.toString();
   try {
@@ -120,7 +146,8 @@ async function fetchWeather() {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error(error);
+    console.warn("Error when fetching weather", error);
+    return null;
   }
 }
 
@@ -139,38 +166,40 @@ function getIcon(icon) {
   return `${ICON_URL}${icon}@4x.png`;
 }
 
-function renderLocations() {
-  locationDropdown.html("");
-  locations.forEach(location => {
-    const item = $("<li>");
-    const anchor = $(`<a class="dropdown-item" href="#">${location.name}</a>`);
-    anchor.data("location", location);
-    item.append(anchor);
-    locationDropdown.append(item);
-  });
-}
-
 function renderForecast(forecast) {
   forecastContainer.html("");
-
   for (let i = 0; i < 5; i++) {
     renderForecastCard(forecast[i]);
   }
 }
 
 function renderCityCard(weatherCurrent) {
-  const currentLocation = loadCurrentLocation();
+  if (!weatherCurrent) return;
   const { dt, temp, wind_speed, humidity, uvi, weather } = weatherCurrent;
+  const currentLocation = loadCurrentLocation();
+  if (!currentLocation) return;
+  const homeLocation = loadHomeLocation();
+  if (homeLocation && currentLocation.name === homeLocation.name) {
+    setHomeBtn.hide();
+  } else {
+    setHomeBtn.show();
+  }
   const date = moment.unix(dt).format("Do MMM, Y");
-  cityDetailsContainer.find("h1").text(`${currentLocation.name} (${currentLocation.country})`);
-  cityDetailsContainer.find(".date").text(date);
-  cityDetailsContainer.find(".temp").text(temp + "°C");
-  cityDetailsContainer.find(".wind").text(wind_speed + " KPH");
-  cityDetailsContainer.find(".humidity").text(humidity + "%");
-  cityDetailsContainer.find("img").attr("src", getIcon(weather[0].icon));
-  const uvSpan = cityDetailsContainer.find(".uvi");
+  cityDetailsCard.find("h1").text(`${currentLocation.name} (${currentLocation.country})`);
+  cityDetailsCard.find(".date").text(date);
+  cityDetailsCard.find(".temp").text(temp + "°C");
+  cityDetailsCard.find(".wind").text(wind_speed + " KPH");
+  cityDetailsCard.find(".humidity").text(humidity + "%");
+  cityDetailsCard.find("img").attr("src", getIcon(weather[0].icon));
+  const uvSpan = cityDetailsCard.find(".uvi");
   uvSpan.text(uvi);
   setUvClass(uvSpan, uvi);
+
+  const placeholder = cityDetailsContainer.find(".card-body.sub");
+  if (placeholder.length > 0) {
+    placeholder.detach();
+    cityDetailsContainer.append(cityDetailsCard);
+  }
 }
 
 function renderForecastCard(dailyData) {
@@ -189,15 +218,34 @@ function renderForecastCard(dailyData) {
   cardBody.append($(`<p class="card-text">Wind Speed: ${wind_speed} KPH</p>`));
   cardBody.append($(`<p class="card-text">Humidity: ${humidity}%</p>`));
   const card = $(`<article class="card my-2 p-1 p-md-3 bg-light border-dark">`);
-  card.append(cardBody);
   const col = $(`<div class="col-6 col-md-4">`);
+  card.append(cardBody);
   col.append(card);
   forecastContainer.append(col);
 }
 
-function init() {
+async function updateWeather() {
   renderLocations();
+  const weather = await fetchWeather();
+  if (!weather) return;
+  renderCityCard(weather.current);
+  renderForecast(weather.daily);
+}
+
+function renderLocations() {
+  locationDropdown.html("");
+  locations.forEach(location => {
+    const item = $("<li>");
+    const anchor = $(`<a class="dropdown-item" href="#">${location.name}</a>`);
+    anchor.data("location", location);
+    item.append(anchor);
+    locationDropdown.append(item);
+  });
+}
+
+function init() {
   updateWeather();
+  renderHomeNav();
 }
 
 init();
