@@ -4,6 +4,7 @@ h1 {
 
 h2 {
   font-size: 1.5rem;
+  /* Allow control over line wrapping for date formatting */
   white-space: pre-line;
 }
 
@@ -11,6 +12,7 @@ p {
   font-size: 1.1rem;
 }
 
+/* Have button overlap card edges in badge style */
 #setHome {
   margin: -0.5rem;
 }
