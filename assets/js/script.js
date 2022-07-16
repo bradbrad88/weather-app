@@ -1,9 +1,9 @@
 const searchForm = $("#searchForm");
+const searchInput = searchForm.find("input");
 const locationDropdown = $("#locationDropdown");
 const locationBtnContainer = $("#locationBtnContainer");
 const cityDetailsContainer = $("#cityDetailsContainer");
 const cityDetailsCard = cityDetailsContainer.find(".card-body.main");
-cityDetailsCard.detach();
 const forecastContainer = $("#forecastContainer");
 const setHomeBtn = $("#setHome");
 const homeTownNav = $("#homeTown");
@@ -14,16 +14,38 @@ const ICON_URL = "http://openweathermap.org/img/wn/";
 
 const locations = loadLocations();
 
+cityDetailsCard.detach();
+
 setHomeBtn.hide();
 setHomeBtn.on("click", saveHomeLocation);
+
+searchInput.on("input", () => {
+  removeValidClasses(searchInput);
+});
 
 searchForm.on("submit", async e => {
   e.preventDefault();
   const input = $(e.target).find("input");
   const success = await onSearch(input.val());
-  if (!success) return;
-  input.val("");
+  validateSearch(success, input);
 });
+
+function validateSearch(success, input) {
+  removeValidClasses(input);
+  if (success) {
+    input.addClass("is-valid");
+    setTimeout(() => {
+      input.removeClass("is-valid");
+      input.val("");
+    }, 1000);
+  } else {
+    input.addClass("is-invalid");
+  }
+}
+
+function removeValidClasses(input) {
+  input.removeClass(["is-valid", "is-invalid"]);
+}
 
 homeTownNav.on("click", onHome);
 
